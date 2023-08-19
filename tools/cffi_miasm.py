@@ -5,6 +5,7 @@
 Generate the miasm embedded library
 """
 
+
 import cffi
 import argparse
 
@@ -20,13 +21,16 @@ args = parser.parse_args()
 ffi = cffi.FFI()
 
 # Declare the library name
-ffi.set_source("miasm_embedded_%s" % args.plugin_name, """
+ffi.set_source(
+    f"miasm_embedded_{args.plugin_name}",
+    """
 #include "src/r2m2.h"
-""")
+""",
+)
 
-# Parse include files to get functions that will be exported
-includes = "".join(open("src/r2m2.h").readlines())
-includes += "".join(open("src/%s.h" % args.plugin_name).readlines())
+includes = "".join(open("src/r2m2.h").readlines()) + "".join(
+    open(f"src/{args.plugin_name}.h").readlines()
+)
 ffi.embedding_api(includes)
 
 # libc functions that will be used from Python
@@ -35,13 +39,10 @@ void *malloc(size_t size);
 char *strncpy(char *dest, const char *src, size_t n);
 """)
 
-# Python code that will be embedded
-fdesc = open("src/%s_cffi.py" % args.plugin_name)
-ffi.embedding_init_code("".join(fdesc.readlines()))
-fdesc.close()
-
+with open(f"src/{args.plugin_name}_cffi.py") as fdesc:
+    ffi.embedding_init_code("".join(fdesc.readlines()))
 # Compile the library, or dump the C code
 if not args.compile:
-    ffi.emit_c_code("miasm_embedded_%s.c" % args.plugin_name)
+    ffi.emit_c_code(f"miasm_embedded_{args.plugin_name}.c")
 else:
     ffi.compile(verbose=True)

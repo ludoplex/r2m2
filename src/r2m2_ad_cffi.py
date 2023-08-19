@@ -18,10 +18,7 @@ from miasm_embedded_r2m2_ad import ffi
 def set_rbuf(rbuf, str_data):
     """Copy a string to a RStrBuf"""
 
-    if len(str_data) < 32:
-        rbuf.buf = str_data
-    else:
-        rbuf.buf = "/!\ buffer too long /!\\"
+    rbuf.buf = str_data if len(str_data) < 32 else "/!\ buffer too long /!\\"
 
 
 MIASM_MACHINE = None
@@ -72,7 +69,7 @@ def miasm_dis(r2_op, r2_address, r2_buffer, r2_length):
         instr.offset = r2_address
         if instr.dstflow():
             # Remember ExprInt arguments sizes
-            args_size = list()
+            args_size = []
             for i in range(len(instr.args)):
                 if isinstance(instr.args[i], ExprInt):
                     args_size.append(instr.args[i].size)
@@ -97,12 +94,12 @@ def miasm_dis(r2_op, r2_address, r2_buffer, r2_length):
         dis_len = 2  # GV: seems fischy !
 
     # Remaining bytes
-    buf_hex = opcode[0:dis_len].encode("hex")
+    buf_hex = opcode[:dis_len].encode("hex")
 
     # Check buffer sizes
-    if len(dis_str)-1 > 256:
+    if len(dis_str) > 257:
         dis_str = "/!\ Disassembled instruction is too long /!\\"
-    if len(buf_hex)-1 > 256:
+    if len(buf_hex) > 257:
         buf_hex = buf_hex[:255]
 
     # Fill the RAsmOp structure

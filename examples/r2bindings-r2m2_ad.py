@@ -27,7 +27,7 @@ def r2m2_asm(mn_str):
     mode = machine.dis_engine().attrib
     mn = machine.mn()
     instr = mn.fromstring(mn_str, mode)
-    asm_instr = [i for i in mn.asm(instr)][0]
+    asm_instr = list(mn.asm(instr))[0]
 
     return [struct.unpack("!B", byte)[0] for byte in asm_instr]
 

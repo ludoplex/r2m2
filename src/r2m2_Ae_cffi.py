@@ -65,7 +65,7 @@ class CachedRAnalOp(object):
 
 
 # Cheap LRU cache
-LRU_CACHE = dict()
+LRU_CACHE = {}
 
 
 # libc CFFI handle
@@ -110,11 +110,7 @@ def m2op_to_r2cond(m2_op):
 
     operator = [("==", R_ANAL_COND_EQ), ("!=", R_ANAL_COND_NE)]
 
-    for m2_op, r2_cond in operator:
-        if m2_op:
-            return r2_cond
-
-    return None
+    return next((r2_cond for m2_op, r2_cond in operator if m2_op), None)
 
 
 @ffi.def_extern()
@@ -339,8 +335,7 @@ def r2_anal_subcall(analop, expression, loc_db):
 def get_esil(analop, instruction, loc_db):
     """Fill the r2 analop structure"""
 
-    esil_string = m2instruction_to_r2esil(instruction, loc_db)
-    if esil_string:
+    if esil_string := m2instruction_to_r2esil(instruction, loc_db):
         analop.esil_string = esil_string
 
 
@@ -363,7 +358,7 @@ def m2instruction_to_r2esil(instruction, loc_db):
         iir, eiir = [], []
 
     # Convert IRs
-    result = list()
+    result = []
     if iir:
         result += [m2expr_to_r2esil(ir, loc_db) for ir in m2_filter_IRDst(iir)]
 
@@ -373,10 +368,7 @@ def m2instruction_to_r2esil(instruction, loc_db):
             result += (m2expr_to_r2esil(ir, loc_db) for ir in
                        m2_filter_IRDst(aff))
 
-    if not len(result):
-        return None
-
-    return ",".join(result)
+    return None if not len(result) else ",".join(result)
 
 
 def m2expr_to_r2esil(iir, loc_db):
